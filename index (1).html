@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI5-1 INTELLIGENCE | Monitoring System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --mx: 0;
+            --my: 0;
+            --tz: 0px;
+            --rx: 0deg;
+            --ry: 0deg;
+            --glow-blue: #00ccff;
+            --glow-pink: #ff6bcb;
+            --glow-purple: #7b5cff;
+        }
+        :root {
+            --palette-blue: #233C4B;
+            --palette-orange: #FF7D2D;
+            --palette-yellow: #FAC846;
+            --palette-olivine: #A0C382;
+            --palette-patina: #5F9B8C;
+            --danger-red: #ff3b30;
+            --bg-dark: #f6f9ff;
+            --sidebar-dark: #ffffff;
+            --card-dark: #ffffff;
+            --accent-blue: var(--palette-patina);
+            --accent-red: var(--palette-orange);
+            --text-main: #0e1320;
+            --text-sub: #5c6b7a;
+            --neon-green: var(--palette-olivine);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins','Segoe UI','system-ui',sans-serif;
+            background:
+              radial-gradient(900px circle at calc(15% + 20px * var(--mx)) calc(10% + 20px * var(--my)), rgba(95,155,140,0.18), transparent 60%),
+              radial-gradient(900px circle at calc(85% - 20px * var(--mx)) calc(90% - 20px * var(--my)), rgba(250,200,70,0.16), transparent 60%),
+              linear-gradient(180deg, #ffffff, var(--bg-dark));
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            perspective: 1600px;
+            transform-style: preserve-3d;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            width: 140vmax;
+            height: 140vmax;
+            transform: translate(-50%, -50%) rotate(0deg);
+            background: conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0%, rgba(95,155,140,0.25) 12%, rgba(255,255,255,0) 24%, rgba(255,125,45,0.25) 38%, rgba(255,255,255,0) 52%, rgba(250,200,70,0.25) 66%, rgba(255,255,255,0) 80%, rgba(35,60,75,0.25) 92%);
+            filter: blur(50px);
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 0;
+            animation: swirl 32s linear infinite;
+        }
+        body::after {
+            content: "";
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            width: 80vmax;
+            height: 80vmax;
+            transform: translate(calc(-50% + 60px * var(--mx)), calc(-50% + 60px * var(--my))) rotate(0deg);
+            background: radial-gradient(closest-side, rgba(95,155,140,0.22), rgba(255,255,255,0));
+            filter: blur(36px);
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 0;
+            animation: orbFloat 10s ease-in-out infinite alternate;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(255,255,255,0.72);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e5eaef;
+            box-shadow: 0 10px 30px rgba(10,20,30,0.08);
+        }
+
+        .brand {
+            padding: 34px 22px;
+            text-align: center;
+            border-bottom: 1px solid #e5eaef;
+        }
+
+        .brand-title {
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            font-family: 'Poppins','Segoe UI',sans-serif;
+            background: linear-gradient(120deg, var(--glow-blue), var(--glow-pink), var(--glow-purple));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: holoShift 6s ease-in-out infinite;
+            text-shadow: 0 16px 40px rgba(0,0,0,0.25);
+        }
+        
+        .brand-subtitle {
+            font-size: 12px;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            margin-top: 6px;
+            font-weight: 700;
+            font-family: 'Poppins','Segoe UI',sans-serif;
+        }
+
+        .menu { list-style: none; padding: 0; margin-top: 28px; }
+        .menu li { 
+            padding: 16px 28px; 
+            cursor: pointer; 
+            transition: color 0.25s, transform 0.25s, background 0.25s, border-color 0.25s; 
+            color: var(--text-sub); 
+            font-size: 16px; 
+            border-left: 2px solid transparent;
+            transform: translateZ(0);
+            will-change: transform;
+            font-family: 'Poppins','Segoe UI','system-ui',sans-serif;
+        }
+        
+        .menu li:hover, .menu li.active { 
+            background: linear-gradient(90deg, rgba(255, 125, 45, 0.18) 0%, transparent 100%);
+            color: var(--accent-red); 
+            border-left-color: var(--accent-red);
+            transform: translateZ(16px);
+        }
+        
+        .menu li i { margin-right: 14px; width: 20px; text-align: center; }
+
+        .main-content { 
+            flex: 1; padding: 36px; overflow-y: auto; position: relative; 
+            perspective: 1200px;
+        }
+        .main-content::before { content: none; }
+        .page { display: none; animation: slideUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        .page.active { display: block; }
+
+        h1 { 
+            margin-top: 0; font-weight: 700; border-bottom: 1px solid #e5eaef; 
+            padding-bottom: 18px; font-size: 32px; color: var(--text-main);
+            letter-spacing: 0.3px;
+            text-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            font-family: 'Poppins','Segoe UI',sans-serif;
+        }
+
+        .stats-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-bottom: 28px; }
+        .stat-card { 
+            position: relative; 
+            background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.86) 100%); 
+            padding: 26px; border-radius: 16px; border: 1px solid #e7edf5; 
+            transform-style: preserve-3d;
+            transform: translateZ(var(--tz, 0px)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); 
+            box-shadow: 0 12px 30px rgba(20,30,40,0.08);
+            -webkit-backdrop-filter: blur(8px) saturate(140%);
+            backdrop-filter: blur(8px) saturate(140%);
+            transition: transform 0.35s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.35s, border-color 0.35s;
+        }
+        .stat-card:hover { 
+            transform: translateZ(36px) rotateX(3deg) rotateY(-3deg); 
+            box-shadow: 0 24px 60px rgba(20,30,40,0.14), 0 0 24px rgba(255,125,45,0.22);
+            border-color: rgba(255,125,45,0.45);
+        }
+        .stat-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            background: linear-gradient(120deg, rgba(0,204,255,0.2), rgba(255,255,255,0), rgba(255,107,203,0.2));
+            opacity: 0.15;
+            pointer-events: none;
+            filter: blur(8px);
+        }
+        .stat-card h3 { margin: 0; font-size: 12px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.8px; font-family: 'Poppins','Segoe UI',sans-serif; }
+        .stat-card .val { font-size: 34px; font-weight: 800; margin-top: 8px; font-family: 'Poppins','Segoe UI',sans-serif; color: var(--text-main); }
+        .stat-card .sub { margin-top: 6px; font-size: 12px; color: var(--text-sub); font-family: 'Poppins','Segoe UI',sans-serif; }
+        .urgent-card.alert { border-color: var(--danger-red); box-shadow: 0 0 0 3px rgba(255,59,48,0.18), 0 22px 60px rgba(255,59,48,0.30); }
+        .urgent-card.alert .val { color: var(--danger-red); }
+
+        .cctv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+        .cctv-frame { 
+            position: relative; background: #ffffff; border-radius: 16px; 
+            overflow: hidden; border: 1px solid #e7edf5; 
+            transform-style: preserve-3d; transform: translateZ(var(--tz, 0px)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); 
+            transition: transform 0.35s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.35s, border-color 0.35s; 
+            box-shadow: 0 14px 34px rgba(20,30,40,0.1);
+        }
+        .cctv-frame:hover { 
+            transform: translateZ(50px) rotateX(3deg) rotateY(3deg); 
+            box-shadow: 0 28px 70px rgba(20,30,40,0.18), 0 0 30px rgba(255,59,48,0.18);
+            border-color: rgba(255,125,45,0.22);
+        }
+        .cctv-frame::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(120% 120% at 0% 0%, rgba(95,155,140,0.18), transparent 50%), radial-gradient(120% 120% at 100% 100%, rgba(250,200,70,0.18), transparent 50%);
+            pointer-events: none;
+        }
+        .cctv-frame video { width: 100%; display: block; opacity: 0.92; object-fit: cover; }
+        
+        .cam-overlay { 
+            position: absolute; top: 14px; left: 14px; background: rgba(255,255,255,0.78); 
+            padding: 6px 12px; font-size: 12px; border-radius: 6px; display: flex; 
+            align-items: center; color: var(--text-main); font-family: 'Poppins','Segoe UI',sans-serif; 
+            border: 1px solid rgba(95, 155, 140, 0.25);
+            box-shadow: 0 10px 24px rgba(20,30,40,0.12);
+            transform: translateZ(20px);
+        }
+        .cam-overlay::after {
+            content: "";
+            position: absolute;
+            inset: -6px;
+            border-radius: 10px;
+            background: conic-gradient(from 0deg, rgba(255,125,45,0.35), rgba(255,255,255,0), rgba(250,200,70,0.35), rgba(255,255,255,0), rgba(95,155,140,0.35));
+            filter: blur(10px);
+            opacity: 0.4;
+            animation: spin 6s linear infinite;
+            pointer-events: none;
+        }
+        .rec-dot { width: 8px; height: 8px; background-color: var(--accent-red); border-radius: 50%; margin-right: 10px; animation: blink 1s infinite; }
+
+        .violence-table { 
+            width: 100%; border-collapse: collapse; 
+            background: #ffffff; 
+            border-radius: 16px; overflow: hidden; margin-top: 20px; 
+            border: 1px solid #e7edf5; 
+            box-shadow: 0 12px 30px rgba(20,30,40,0.08);
+        }
+        .violence-table th, .violence-table td { padding: 18px; text-align: left; border-bottom: 1px solid #e5eaef; font-size: 14px; color: var(--text-main); font-family: 'Poppins','Segoe UI','system-ui',sans-serif; }
+        .violence-table th { background-color: #f3f7fd; color: var(--text-main); font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+        .tag { padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .tag-punch { background: rgba(255, 59, 48, 0.12); color: #ff3b30; border: 1px solid rgba(255, 59, 48, 0.28); }
+
+        .sim-control {
+            margin-top: 28px; padding: 26px; background: rgba(255, 255, 255, 0.6);
+            border: 1px dashed #e5eaef; text-align: center; border-radius: 16px;
+            transform-style: preserve-3d; transform: translateZ(0);
+            -webkit-backdrop-filter: blur(8px) saturate(140%);
+            backdrop-filter: blur(8px) saturate(140%);
+            box-shadow: 0 10px 24px rgba(20,30,40,0.08);
+        }
+
+        .auto-text {
+            color: var(--accent-blue); font-weight: 800; font-size: 20px;
+            animation: pulse 1.5s infinite; letter-spacing: 1px;
+        }
+
+        #notification-area {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            perspective: 1200px;
+        }
+        
+        .toast {
+            background: rgba(255, 255, 255, 0.96);
+            border-left: 4px solid var(--accent-blue);
+            color: var(--text-main);
+            padding: 15px 24px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            -webkit-backdrop-filter: blur(8px) saturate(140%);
+            backdrop-filter: blur(8px) saturate(140%);
+            box-shadow: 0 12px 28px rgba(20,30,40,0.12), 0 0 20px rgba(255,125,45,0.18);
+            display: flex; align-items: center;
+            font-family: 'Poppins', sans-serif;
+            min-width: 300px;
+            transform: translateX(120%) translateZ(var(--tz, 0px)) rotateY(var(--ry, 0deg));
+            transition: transform 0.45s cubic-bezier(0.2,0.8,0.2,1);
+        }
+
+        .toast.show { transform: translateX(0) translateZ(60px) rotateY(-6deg); }
+        .toast i { font-size: 20px; margin-right: 15px; }
+        .toast-content h4 { margin: 0 0 5px 0; font-size: 14px; }
+        .toast-content p { margin: 0; font-size: 12px; color: var(--text-sub); }
+        
+        .toast.success { border-left-color: var(--neon-green); }
+        .toast.success i { color: var(--neon-green); }
+        .toast.loading { border-left-color: #FAC846; }
+        .toast.loading i { color: #FAC846; animation: spin 1s infinite linear; }
+
+        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes swirl { to { transform: translate(-50%, -50%) rotate(360deg); } }
+        @keyframes gridShift { 0% { background-position: 0 0, 0 0, 0 0; } 100% { background-position: 0 600px, 0 0, 600px 0; } }
+        @keyframes orbFloat { 0% { transform: translate(calc(-50% + 60px * var(--mx)), calc(-50% + 60px * var(--my))) scale(1); } 100% { transform: translate(calc(-50% - 60px * var(--mx)), calc(-50% - 60px * var(--my))) scale(1.08); } }
+        @keyframes holoShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } 
+    </style>
+</head>
+<body>
+
+    <div id="notification-area"></div>
+
+    <div class="sidebar">
+        <div class="brand">
+            <div class="brand-title"><i class="fas fa-robot"></i> AI5-1</div>
+            <div class="brand-subtitle">INTELLIGENCE UNIT</div>
+        </div>
+        <ul class="menu">
+            <li onclick="nav('dashboard')" id="menu-dashboard" class="active"><i class="fas fa-chart-pie"></i> Dashboard</li>
+            <li onclick="nav('cctv')" id="menu-cctv"><i class="fas fa-eye"></i> Live Surveillance</li>
+            <li onclick="nav('history')" id="menu-history"><i class="fas fa-database"></i> Event Logs</li>
+        </ul>
+        <div style="margin-top: auto; padding: 30px; font-size: 11px; color: #57606f; text-align: center; font-family: Poppins, sans-serif;">
+            AI5-1 SYSTEM v.1.0<br>
+            <span style="color: var(--neon-green);">● SYSTEM ONLINE</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="dashboard" class="page active">
+            <h1><i class="fas fa-layer-group"></i> SYSTEM OVERVIEW</h1>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Threats Detected</h3>
+                    <div class="val">5</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Cameras</h3>
+                    <div class="val">4 / 4</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Dominant Class</h3>
+                    <div class="val" style="font-size: x-large; color: var(--accent-red);">PUNCHING</div>
+                </div>
+                <div class="stat-card urgent-card" id="urgentCard">
+                    <h3>URGENTLY VIOLENCE</h3>
+                    <div class="val" id="urgentStatus">-</div>
+                    <div class="sub" id="urgentLocation"></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-wave-square"></i> Activity Frequency (24H)</h3>
+                <canvas id="violenceChart" style="max-height: 400px;"></canvas>
+            </div>
+        </div>
+
+        <div id="cctv" class="page">
+            <h1><i class="fas fa-crosshairs"></i> REAL-TIME SURVEILLANCE</h1>
+            <p style="color: #7f8fa6; font-size: 14px;">AI Model Loaded: <b>[RUNNING, WEAPON, KICKING, PUNCHING]</b></p>
+            <div class="cctv-grid">
+                <div class="cctv-frame"><div class="cam-overlay"><span class="rec-dot"></span> CAM-01: MAIN LOBBY</div><video src="https://media.istockphoto.com/id/1346669963/id/video/orang-banyak-berjalan-di-sepanjang-trotoar-di-london.mp4?s=mp4-640x640-is&k=20&c=i-q52Nq4w2P8h28q9JtP-Z_9_4_2_5.mp4" autoplay muted loop></video></div>
+                
+                <div class="cctv-frame" id="targetCam"><div class="cam-overlay"><span class="rec-dot"></span> CAM-02: PARKING LOT (ZONE B)</div><video src="https://media.istockphoto.com/id/1152047359/id/video/sekelompok-pria-muda-berlari-di-jalan.mp4?s=mp4-640x640-is&k=20&c=L_9_4_2_5.mp4" autoplay muted loop></video></div>
+
+                <div class="cctv-frame"><div class="cam-overlay"><span class="rec-dot"></span> CAM-03: WEST HALL</div><video src="https://media.istockphoto.com/id/1324794270/id/video/rekaman-drone-udara-selang-waktu-lalu-lintas-bergerak-cepat-dan-persimpangan-jalan-kota-yang.mp4?s=mp4-640x640-is&k=20&c=K5Rz5H5p0uL4uO_O2_k2g_0_m7_M_9_4_2_5.mp4" autoplay muted loop></video></div>
+                <div class="cctv-frame"><div class="cam-overlay"><span class="rec-dot"></span> CAM-04: CANTEEN</div><video src="https://media.istockphoto.com/id/1405943644/id/video/pemandangan-udara-dari-atas-ke-bawah-dari-orang-orang-yang-berjalan-di-jalan-pejalan-kaki.mp4?s=mp4-640x640-is&k=20&c=T_9_4_2_5.mp4" autoplay muted loop></video></div>
+            </div>
+            <div class="sim-control">
+                <p class="auto-text"><i class="fas fa-radar"></i> AI5-1 SCANNING SEQUENCE ACTIVE...</p>
+                <p style="color: #636e72; font-size: 12px; font-family: monospace;">ANALYZING BEHAVIOR PATTERNS | AUTO-REPORT ENABLED</p>
+            </div>
+        </div>
+
+        <div id="history" class="page">
+            <h1><i class="fas fa-clipboard-list"></i> DETECTION LOGS</h1>
+            <table class="violence-table">
+                <thead>
+                    <tr><th>TIMESTAMP</th><th>LOCATION ID</th><th>DETECTED CLASS</th><th>CONFIDENCE</th><th>STATUS</th></tr>
+                </thead>
+                <tbody id="historyBody">
+                    <tr>
+                        <td>09:12:05</td>
+                        <td>CAM-01: MAIN LOBBY</td>
+                        <td><span class="tag" style="background: rgba(255,255,0,0.1); color: yellow; border:1px solid yellow;">RUNNING</span></td>
+                        <td>88.5%</td>
+                        <td><span style="color: var(--neon-green); font-size:12px;">● REPORT SENT</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let detectionTriggered = false;
+        let urgentTimeoutId = null;
+        function setUrgency(status, location) {
+            const statusEl = document.getElementById('urgentStatus');
+            const locationEl = document.getElementById('urgentLocation');
+            const cardEl = document.getElementById('urgentCard');
+            if (!statusEl || !locationEl || !cardEl) return;
+            statusEl.textContent = status || '-';
+            locationEl.textContent = location || '';
+            if (urgentTimeoutId) { clearTimeout(urgentTimeoutId); }
+            if (status) {
+                cardEl.classList.add('alert');
+                urgentTimeoutId = setTimeout(() => {
+                    statusEl.textContent = '-';
+                    locationEl.textContent = '';
+                    cardEl.classList.remove('alert');
+                    urgentTimeoutId = null;
+                }, 120000);
+            } else {
+                cardEl.classList.remove('alert');
+            }
+        }
+
+        // --- NAVIGATION & AUTO TRIGGER ---
+        function nav(pageId) {
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.menu li').forEach(el => el.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.getElementById('menu-' + pageId).classList.add('active');
+
+            if (pageId === 'cctv' && !detectionTriggered) {
+                console.log("AI5-1 Sequence Initiated...");
+                setTimeout(executeSystemAlert, 8000); // 8 Detik sampai deteksi
+            }
+        }
+
+        // --- CHART ---
+        const ctx = document.getElementById('violenceChart').getContext('2d');
+        const borderGrad = ctx.createLinearGradient(0,0,0,400);
+        borderGrad.addColorStop(0, '#FF7D2D');
+        borderGrad.addColorStop(1, '#5F9B8C');
+        const fillGrad = ctx.createLinearGradient(0,0,0,400);
+        fillGrad.addColorStop(0, 'rgba(250,200,70,0.25)');
+        fillGrad.addColorStop(1, 'rgba(95,155,140,0.18)');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'],
+                datasets: [{ label: 'Threat Level', data: [1, 2, 0, 5, 2, 4], borderColor: borderGrad, backgroundColor: fillGrad, borderWidth: 3, pointBackgroundColor: '#e6eef5', pointBorderColor: '#0aa2ff', pointRadius: 4, pointHoverRadius: 8, fill: true, tension: 0.35 }]
+            },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#3f4a58', font: { family: 'Poppins' } } } }, scales: { y: { ticks: { color: '#4a5868' }, grid: { color: '#e7edf5' } }, x: { ticks: { color: '#4a5868' }, grid: { color: '#e7edf5' } } } }
+        });
+
+        // --- TOAST NOTIFICATION ---
+        function showToast(type, title, message, duration = 3000) {
+            const area = document.getElementById('notification-area');
+            const toast = document.createElement('div');
+            let icon = type === 'loading' ? 'fa-spinner' : 'fa-check-circle';
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${icon}"></i><div class="toast-content"><h4>${title}</h4><p>${message}</p></div>`;
+            area.appendChild(toast);
+            setTimeout(() => { toast.classList.add('show'); }, 100);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => { toast.remove(); }, 400); }, duration);
+        }
+
+        // --- FUNGSI UTAMA (VISUAL + AUTO OPEN WA) ---
+        function executeSystemAlert() {
+            if (detectionTriggered) return;
+            detectionTriggered = true;
+
+            // 1. VISUAL: BORDER MERAH
+            const cam = document.getElementById('targetCam');
+            if(cam) {
+                cam.style.border = "4px solid #ff3b30";
+                cam.style.boxShadow = "0 0 20px rgba(255, 59, 48, 0.6)";
+            }
+
+            // 2. VISUAL: TOAST LOADING
+            showToast('loading', 'AI5-1 GATEWAY', 'Connecting to WhatsApp API...', 2000);
+
+            // 3. JEDA 2 DETIK, BARU BUKA WA
+            setTimeout(() => {
+                // UPDATE TABEL
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+                const tabel = document.getElementById('historyBody');
+                const row = tabel.insertRow(0);
+                row.style.animation = "fadeIn 1s";
+                row.innerHTML = `
+                    <td style="color: var(--neon-green); font-weight:bold;">${timeString}</td>
+                    <td style="color: #ff3b30; font-weight:bold;">CAM-02: PARKING LOT</td>
+                    <td><span class="tag tag-punch">PUNCHING</span></td>
+                    <td>98.2%</td>
+                    <td><span style="color: var(--neon-green); font-size:12px;">● REPORT SENT</span></td>
+                `;
+
+                setUrgency('PUNCHING', 'Parking Lot (Zone B)');
+
+                // NOTIFIKASI SUKSES
+                showToast('success', 'MESSAGE DELIVERED', 'Opening WhatsApp Gateway...', 5000);
+
+                // --- BAGIAN INI MEMBUKA WA SECARA OTOMATIS ---
+                const noHp = "6288740431965"; 
+                let message = `🚨 *SYSTEM ALERT: AI5-1* 🚨\n\n` +
+                              `Violence Detected by Intelligence Unit.\n` +
+                              `============================\n` +
+                              `⏰ *Time:* ${timeString}\n` +
+                              `📍 *Location:* Parking Lot (Zone B)\n` +
+                              `🛑 *Class:* PUNCHING (Violence)\n` +
+                              `📈 *Confidence:* 98.2%\n` +
+                              `============================\n` +
+                              `Please verify the attached footage immediately.`;
+
+                // PERINTAH BUKA TAB BARU
+                window.open(`https://wa.me/${noHp}?text=${encodeURIComponent(message)}`, '_blank');
+                
+            }, 2000); 
+        }
+        
+        document.addEventListener('mousemove', e => {
+            const mx = (e.clientX / window.innerWidth) * 2 - 1;
+            const my = (e.clientY / window.innerHeight) * 2 - 1;
+            document.documentElement.style.setProperty('--mx', mx.toFixed(3));
+            document.documentElement.style.setProperty('--my', my.toFixed(3));
+        });
+        function interactive3D(selector, z, r) {
+            document.querySelectorAll(selector).forEach(el => {
+                function move(ev) {
+                    const rect = el.getBoundingClientRect();
+                    const x = (ev.clientX - rect.left) / rect.width - 0.5;
+                    const y = (ev.clientY - rect.top) / rect.height - 0.5;
+                    const ry = x * r * 2;
+                    const rx = -y * r * 2;
+                    el.style.setProperty('--rx', rx + 'deg');
+                    el.style.setProperty('--ry', ry + 'deg');
+                    el.style.setProperty('--tz', z + 'px');
+                }
+                function leave() {
+                    el.style.setProperty('--rx', '0deg');
+                    el.style.setProperty('--ry', '0deg');
+                    el.style.setProperty('--tz', '0px');
+                }
+                el.addEventListener('mousemove', move);
+                el.addEventListener('mouseleave', leave);
+            });
+        }
+        interactive3D('.stat-card', 60, 12);
+        interactive3D('.cctv-frame', 80, 14);
+        interactive3D('.toast', 50, 10);
+    </script>
+</body>
+</html>

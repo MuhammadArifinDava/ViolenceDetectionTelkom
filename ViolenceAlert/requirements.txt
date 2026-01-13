@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+python-multipart
+streamlit
+torch
+torchvision
+opencv-python
+pillow
+numpy
+requests
+streamlit-extras
+transformers
+ftfy
+regex
