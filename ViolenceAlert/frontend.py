@@ -84,20 +84,49 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("#### Model Info")
 st.sidebar.info("Model: CLIP (ViT-Base)")
 st.sidebar.markdown("**Detected Classes:**")
-st.sidebar.markdown("- 👊 Punching\n- 🦶 Kicking\n- 🔫 Weapon\n- 🏃 Running\n- 🤸 Falling")
+st.sidebar.markdown("- 👊 Punching\n- 🦶 Kicking\n- 🔫 Weapon\n- 🏃 Running\n- 🤸 Falling\n- 🚶 Normal")
+
+st.sidebar.markdown("#### Input Source")
+input_source = st.sidebar.radio("Select Input:", ["Webcam", "Upload Video"])
 
 if 'streaming' not in st.session_state:
     st.session_state.streaming = False
 
-col_btn1, col_btn2 = st.sidebar.columns(2)
-with col_btn1:
-    if st.button("▶ START", use_container_width=True):
-        st.session_state.streaming = True
-        st.rerun()
-with col_btn2:
-    if st.button("⏹ STOP", use_container_width=True):
-        st.session_state.streaming = False
-        st.rerun()
+if input_source == "Webcam":
+    col_btn1, col_btn2 = st.sidebar.columns(2)
+    with col_btn1:
+        with stylable_container(
+            key="start_btn",
+            css_styles="""
+                button {
+                    background-color: #00b09b;
+                    color: white;
+                }
+                """
+        ):
+            if st.button("▶ START", use_container_width=True):
+                st.session_state.streaming = True
+                st.rerun()
+    with col_btn2:
+        with stylable_container(
+            key="stop_btn",
+            css_styles="""
+                button {
+                    background-color: #ef473a;
+                    color: white;
+                }
+                """
+        ):
+            if st.button("⏹ STOP", use_container_width=True):
+                st.session_state.streaming = False
+                st.rerun()
+else:
+    # Logic untuk Upload Video
+    uploaded_file = st.sidebar.file_uploader("Upload Video File (mp4/avi)", type=['mp4', 'avi', 'mov'])
+    if uploaded_file:
+        st.session_state.video_file = uploaded_file
+    else:
+        st.session_state.streaming = False # Stop jika tidak ada file
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 Status")
@@ -117,16 +146,22 @@ with col2:
     alert_placeholder = st.empty()
 
 # Main Loop
-if st.session_state.streaming:
+if st.session_state.streaming or (input_source == "Upload Video" and 'video_file' in st.session_state):
     import cv2
     import numpy as np
     import concurrent.futures
+    import tempfile
     
-    cap = cv2.VideoCapture(0)
-    
-    # Set resolusi kamera agar tidak terlalu besar (beban di Streamlit)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    if input_source == "Webcam":
+        cap = cv2.VideoCapture(0)
+        # Set resolusi kamera agar tidak terlalu besar (beban di Streamlit)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    else:
+        # Handle Uploaded Video
+        tfile = tempfile.NamedTemporaryFile(delete=False) 
+        tfile.write(st.session_state.video_file.read())
+        cap = cv2.VideoCapture(tfile.name)
     
     if not cap.isOpened():
         st.error("❌ Camera not found!")
@@ -141,18 +176,22 @@ if st.session_state.streaming:
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         future = None
         
-        while st.session_state.streaming:
+        while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
-                st.warning("Failed to read frame")
-                break
+                if input_source == "Upload Video":
+                     st.info("End of Video")
+                     break
+                else:
+                     st.warning("Failed to read frame")
+                     break
             
             # 1. Resize Frame untuk Display (Kunci anti-lag di Streamlit Loop)
             # Mengirim gambar 1080p lewat websocket Streamlit itu berat. 
             # Kita resize ke 640px lebar agar ringan.
             display_frame = cv2.resize(frame, (640, 480))
             frame_rgb = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
-            cam_placeholder.image(frame_rgb, channels="RGB", use_container_width=True)
+            cam_placeholder.image(frame_rgb, channels="RGB", width=640)
             
             # 2. Logic AI Inference (Asynchronous / Non-Blocking)
             current_time = time.time()
@@ -171,7 +210,7 @@ if st.session_state.streaming:
                                 # Update UI Hasil (Hanya update jika ada hasil baru)
                                 if img_content:
                                     result_img = Image.open(io.BytesIO(img_content))
-                                    result_placeholder.image(result_img, caption=f"AI Analyzed ({status})", use_container_width=True)
+                                    result_placeholder.image(result_img, caption=f"AI Analyzed ({status})", width=640)
                                 
                                 if status == "DANGER":
                                     alert_placeholder.markdown(f"""

@@ -16,14 +16,15 @@ model = CLIPModel.from_pretrained(MODEL_NAME).to(device)
 processor = CLIPProcessor.from_pretrained(MODEL_NAME)
 print("Model Loaded Successfully!")
 
-# --- DEFINISI KELAS DARI NOTEBOOK ---
+# --- DEFINISI KELAS DARI NOTEBOOK (SPECIFIC & REFINED) ---
+# Prompt Engineering: Tetap detail tapi spesifik per aksi
 class_labels = {
-    "Falling": "a person is falling down",
-    "Holding_weapon": "a person is holding a weapon, such as a gun",
-    "Punching": "a person is punching another person",
-    "Running": "a motion-blurred shot of someone sprinting fast",
-    "Kicking": "a person is kicking another person",
-    "Normal": "a person standing normally, walking peacefully, no violence" # Tambahan untuk baseline
+    "Punching": "a photo of a person punching, hitting, or striking another person with a fist",
+    "Kicking": "a photo of a person kicking or stomping on another person",
+    "Weapon": "a photo of a person holding a gun, knife, pistol, or dangerous weapon",
+    "Running": "a photo of a person running away fast, escaping, or sprinting",
+    "Falling": "a photo of a person falling down to the ground, collapsing, or tripping",
+    "Normal": "a photo of people walking, standing, sitting, or talking normally without violence"
 }
 
 # Urutan label untuk prediksi
@@ -32,7 +33,7 @@ text_prompts = list(class_labels.values())
 
 @app.get("/")
 def home():
-    return {"status": "Violence Detection System Ready", "model": "CLIP-ViT-Base"}
+    return {"status": "Violence Detection System Ready", "model": "CLIP-ViT-Base (Specific Actions)"}
 
 @app.post("/detect_stream")
 async def detect_stream(file: UploadFile = File(...)):
@@ -54,36 +55,38 @@ async def detect_stream(file: UploadFile = File(...)):
         probs = logits_per_image.softmax(dim=1) # konversi ke probabilitas
 
     # 3. Ambil Hasil
-    # Pindahkan ke CPU untuk diproses numpy/python
-    probs_np = probs.cpu().numpy()[0] 
+    probs_np = probs.cpu().numpy()[0]
+    
+    # DEBUG: Print semua probabilitas ke terminal
+    print("\n--- Detection Result ---")
+    for label, score in zip(labels_list, probs_np):
+        print(f"{label}: {score:.4f}")
+        
     pred_idx = np.argmax(probs_np)
     pred_label = labels_list[pred_idx]
     pred_conf = float(probs_np[pred_idx])
     
-    # 4. Interpretasi Status (Logic Bisnis)
+    # 4. Interpretasi Status (Logic Bisnis yang Lebih Detail)
     status = "SAFE"
     message = f"{pred_label} ({pred_conf:.1%})"
     
-    # Mapping Label ke Status
-    DANGER_CLASSES = ["Punching", "Kicking", "Holding_weapon"]
-    WARNING_CLASSES = ["Falling", "Running"]
-    
-    if pred_label in DANGER_CLASSES:
-        if pred_conf > 0.6: # Threshold agar tidak false alarm
+    # Kategori Bahaya Tinggi
+    if pred_label in ["Punching", "Kicking", "Weapon"]:
+        if pred_conf > 0.50: 
             status = "DANGER"
             message = f"VIOLENCE: {pred_label} ({pred_conf:.0%})"
         else:
-            # Jika confidence rendah, anggap warning/safe
-            status = "WARNING" 
-            message = f"Suspect: {pred_label}?"
-            
-    elif pred_label in WARNING_CLASSES:
+            status = "WARNING"
+            message = f"Suspect: {pred_label} ({pred_conf:.0%})"
+    
+    # Kategori Peringatan
+    elif pred_label in ["Running", "Falling"]:
         status = "WARNING"
-        message = f"Alert: {pred_label}"
-        
+        message = f"Alert: {pred_label} ({pred_conf:.0%})"
+            
     else: # Normal
         status = "SAFE"
-        message = "Monitoring..."
+        message = "Normal Activity"
 
     # 5. Return Original Image
     img_byte_arr = io.BytesIO()
