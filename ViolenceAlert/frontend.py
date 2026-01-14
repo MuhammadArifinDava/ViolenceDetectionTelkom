@@ -236,8 +236,9 @@ if st.session_state.streaming or (input_source == "Upload Video" and 'video_file
                         except Exception as e:
                             print(f"Async Error: {e}")
 
-                    # Siapkan frame untuk request baru (Resize 224x224 untuk VGG)
-                    frame_ai = cv2.resize(frame, (224, 224))
+                    # Siapkan frame untuk request baru (Kirim resolusi 640x480 agar tidak gepeng/distorsi)
+                    # CLIP Processor akan menangani resize/crop secara proporsional
+                    frame_ai = cv2.resize(frame, (640, 480))
                     _, buffer = cv2.imencode('.jpg', frame_ai)
                     frame_bytes = io.BytesIO(buffer).getvalue()
                     
